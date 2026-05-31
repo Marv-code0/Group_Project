@@ -1,0 +1,18 @@
+# Alles ignorieren
+*
+
+# Aber diese Dateien/Ordner erlauben
+!.gitignore
+!requirements.txt
+
+!src/
+!src/**
+
+!plots/
+!plots/**
+
+!results/
+!results/**
+
+!tests/
+!tests/**
