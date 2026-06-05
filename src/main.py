@@ -17,5 +17,6 @@ def main():
 
             max_agents_per_cell = 4,
             border_spawn_protection = 2,
+            random_seed=42
     )
 

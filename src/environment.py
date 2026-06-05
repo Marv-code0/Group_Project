@@ -13,7 +13,7 @@ from enum import IntEnum
 import numpy as np
 
 
-EXIT_NUM = 4
+EXIT_NUM = 6
 
 class CellType(IntEnum):
     FREE = 0
@@ -28,6 +28,7 @@ class EnvironmentConfig:
     exit_width: int
     use_stage: bool # if the stage in front is a blocked field
     use_barriers: bool # if there are f.e fences that an agent need to go around
+    random_seed: int
 
     #crowd control
     max_agents_per_cell: int
@@ -40,7 +41,21 @@ class EnvironmentConfig:
 
 #creates an environment grid for the model with the exits and the obsticales/stage grid[x,y] = 1 means this grid is type stage
 def create_environment_grid(config: EnvironmentConfig) -> np.ndarray:
-    pass
+    grid = np.full(
+        (config.width, config.height),
+        CellType.FREE,
+        dtype=np.int8
+    )
+
+    if config.use_stage:
+        add_front_stage(grid, config)
+
+    if config.use_barriers:
+        add_obstacles(grid, config)
+
+    add_exits(grid, config)
+
+    return grid
 
 def add_exits(grid: np.ndarray, config: EnvironmentConfig) -> None:
     """
@@ -76,4 +91,31 @@ def add_exits(grid: np.ndarray, config: EnvironmentConfig) -> None:
         grid[x, 0] = CellType.EXIT
 
 
+def add_obstacles(grid: np.ndarray, config: EnvironmentConfig) -> None:
+    """
+    adding fences to the grid
+    and 2 blocks
+    """
+    #first fence row in front of the stage
+    grid[8:44, 57:59] = CellType.OBSTACLE
+    grid[56:92, 57:59] = CellType.OBSTACLE
 
+    #second fence row
+    grid[8:44, 40] = CellType.OBSTACLE
+    grid[56:92, 40] = CellType.OBSTACLE
+
+    #lower left block
+    grid[28:32, 12:28] = CellType.OBSTACLE
+
+    #lower right block
+    grid[68:72, 12:28] = CellType.OBSTACLE
+def add_front_stage(grid: np.ndarray, config: EnvironmentConfig) -> None:
+    """
+    for the stage we use a fixed stage that is allways blocked
+    Mainstage x 0-99 y 79-72
+    and a small catwalk
+    x 48-51 y 60 - 71
+    """
+
+    grid[0:100, 72:80] = CellType.STAGE
+    grid[48:52, 60:72] = CellType.STAGE
