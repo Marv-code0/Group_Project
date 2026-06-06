@@ -11,7 +11,7 @@ The environment represents a simplified stadium / concert area:
 from dataclasses import dataclass
 from enum import IntEnum
 import numpy as np
-
+from collections import deque
 
 EXIT_NUM = 6
 
@@ -119,3 +119,58 @@ def add_front_stage(grid: np.ndarray, config: EnvironmentConfig) -> None:
 
     grid[0:100, 72:80] = CellType.STAGE
     grid[48:52, 60:72] = CellType.STAGE
+
+"""
+We choose to use OrthogonalMooreGrid so we have 8 neighboors. For every cell in the grid we calculate the distance
+to an exit
+"""
+def create_distance_to_exit_grid(environment_grid: np.ndarray) -> np.ndarray:
+    width, height = environment_grid.shape
+
+    distance_grid = np.full(
+        (width, height),
+        -1,
+        dtype=np.int32
+    )
+
+    queue = deque()
+
+    exit_positions = np.argwhere(environment_grid == CellType.EXIT)
+    #we give every exit distance 0 and put in a queue
+    for x,y in exit_positions:
+        distance_grid[x, y] = 0
+        queue.append((x, y))
+
+    #all 8 neighbor directions
+    neighbor_directions = [
+        (1, 0),
+        (-1, 0),
+        (0, 1),
+        (0, -1),
+        (1, 1),
+        (1, -1),
+        (-1, 1),
+        (-1, -1),
+    ]
+
+    while queue:
+        x, y = queue.popleft()
+        for dx, dy in neighbor_directions:
+            new_x = x + dx
+            new_y = y + dy
+
+            #out of grid
+            if not (0 <= new_x < width and 0 <= new_y < height):
+                continue
+            #if obstacle or stage
+            if environment_grid[new_x, new_y] in (CellType.OBSTACLE, CellType.STAGE):
+                continue
+            #-1 means we did not reach the cell yet
+            if distance_grid[new_x, new_y] != -1:
+                continue
+            #if it is a reachable cell and is not visited, yet we add the value of the old cell +1
+            distance_grid[new_x, new_y] = distance_grid[x, y] + 1
+            #add the new x,y value to the queue to check the neighbors
+            queue.append((new_x, new_y))
+
+    return distance_grid

@@ -3,7 +3,7 @@
 from mesa.discrete_space import CellAgent
 from mesa.discrete_space.cell import Cell
 
-class Agent(CellAgent):
+class PanicAgent(CellAgent):
     def __init__(self,model):
         super().__init__(model)
 
@@ -59,7 +59,6 @@ class Agent(CellAgent):
         reachable_cell_collection = current_cell.neighborhood.select(
             lambda cell:
             self.model.is_walkable_cell(cell)
-            and self.model.is_reachable_cell(cell)
             and (
                 self.model.is_exit_cell(cell)
                 or not cell.is_full
