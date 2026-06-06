@@ -23,10 +23,11 @@ class PanicAgent(CellAgent):
 
         # Agent is blocked and cannot move.
         if next_cell is None:
-            self.increase_panic(self.model.blocked_panic_increase)
+            if self.model.fire_active:
+                self.increase_panic(self.model.blocked_panic_increase)
 
-            if self.model.is_fire_cell(self.cell):
-                self.model.kill_agent(self)
+                if self.model.is_fire_cell(self.cell):
+                    self.model.kill_agent(self)
 
             return
 
@@ -36,12 +37,14 @@ class PanicAgent(CellAgent):
             return
 
         #if the next cell has a lot of panic agents the panic of the current agent increases
-        self.absorb_panic_from_cell(next_cell)
+        if self.model.fire_active:
+            self.absorb_panic_from_cell(next_cell)
 
         self.move_to(next_cell)
 
         #on a succesfull move the agents panic decrease slighly
-        self.decrease_panic(self.model.panic_decay)
+        if self.model.fire_active:
+            self.decrease_panic(self.model.panic_decay)
 
     def choose_next_cell(self) -> Cell | None:
 
@@ -51,7 +54,7 @@ class PanicAgent(CellAgent):
 
             return None
 
-        random_move_probability = self.panic_level
+        random_move_probability = self.panic_level * 0.5
 
         make_random_move=(self.model.random.random() < random_move_probability)
 
@@ -73,10 +76,11 @@ class PanicAgent(CellAgent):
             self.model.is_walkable_cell(cell)
             and not self.model.is_fire_cell(cell)
             and (
-                self.model.is_exit_cell(cell)
-                or not cell.is_full
+                self.model.fire_active
+                or not self.model.is_exit_cell(cell)
             )
-
+            and (self.model.is_exit_cell(cell)
+                 or not cell.is_full)
         )
 
         return list(reachable_cell_collection.cells)
@@ -97,18 +101,42 @@ class PanicAgent(CellAgent):
         self.panic_level = max(0,self.panic_level-panic_decay)
 
     def choose_best_cell_to_exit(self,reachable_cells):
-        best_distance = min(self.model.distance_to_exit(cell) for cell in reachable_cells)
+        safe_cells = [
+            cell for cell in reachable_cells
+            if self.model.distance_to_exit(cell) >= 0
+        ]
 
-        best_cells = [cell for cell in reachable_cells if self.model.distance_to_exit(cell) == best_distance]
+        if len(safe_cells) == 0:
+            return self.model.random.choice(reachable_cells)
+
+        best_distance = min(self.model.distance_to_exit(cell) for cell in safe_cells)
+
+        best_cells = [
+            cell for cell in safe_cells
+            if self.model.distance_to_exit(cell) == best_distance
+        ]
 
         return self.model.random.choice(best_cells)
 
     def choose_best_cell_to_stage(self, reachable_cells):
-        best_distance = min(self.model.distance_to_stage(cell) for cell in reachable_cells)
+        best_score = min(
+            self.model.distance_to_stage(cell) + self.model.stage_preference(cell)
+            for cell in reachable_cells
+        )
 
         best_cells = [
             cell for cell in reachable_cells
-            if self.model.distance_to_stage(cell) == best_distance
+            if self.model.distance_to_stage(cell) + self.model.stage_preference(cell) <= best_score + 2
         ]
 
-        return self.model.random.choice(best_cells)
+        best_free_space_in_near_cells = max(
+            cell.capacity - len(cell.agents)
+            for cell in best_cells
+        )
+
+        least_crowded_cells = [
+            cell for cell in best_cells
+            if cell.capacity - len(cell.agents) == best_free_space_in_near_cells
+        ]
+
+        return self.model.random.choice(least_crowded_cells)

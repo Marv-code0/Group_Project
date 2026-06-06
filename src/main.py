@@ -63,7 +63,7 @@ def main():
 
     model= PanicSimModel(env_config, num_agents)
     model.run_model()
-    print_simulation_summary(model)
+    print_simulation_summary(model,real_people,people_per_agent)
 
 if __name__ == "__main__":
     main()

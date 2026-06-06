@@ -1,3 +1,5 @@
+#https://mesa.readthedocs.io/latest/apis/visualization.html#../tutorials/6_visualization_custom
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
@@ -22,7 +24,7 @@ def get_agent_color(agent):
 
 @solara.component
 def ArenaView(model):
-    # Needed so the map also redraws when the model steps forward.
+    # updates the map so
     update_counter.get()
 
     fig, ax = plt.subplots(figsize=(9, 7))
@@ -110,10 +112,10 @@ env_config = EnvironmentConfig(
     border_spawn_protection=2,
     random_seed=42,
 
-    fire_start_step=10,
+    fire_start_step=60,
     fire_start_size=5,
-    fire_spread_interval=1,
-    fire_spread_size=25,
+    fire_spread_interval=5,
+    fire_spread_size=10,
 
     blocked_panic_increase=0.1,
     panic_decay=0.04,
@@ -124,7 +126,7 @@ env_config = EnvironmentConfig(
 
 model_params = {
     "environment_config": env_config,
-    "num_agents": 8000,
+    "num_agents": 10000,
 }
 
 

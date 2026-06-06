@@ -6,6 +6,7 @@ from mesa.discrete_space.cell import Cell
 from mesa.datacollection import DataCollector
 from environment import CellType
 from agents import PanicAgent
+from environment import create_stage_preference_grid
 #OrthogonalVonNeumannGrid
 
 from environment import EnvironmentConfig, create_environment_grid, create_distance_to_exit_grid,create_distance_to_stage_grid
@@ -42,8 +43,9 @@ class PanicSimModel(mesa.Model):
         self.environment_config = environment_config
         self.environment_grid = create_environment_grid(environment_config)
         self.distance_to_exit_grid = create_distance_to_exit_grid(self.environment_grid)
+        self.safe_distance_to_exit_grid = self.distance_to_exit_grid.copy()
         self.distance_to_stage_grid = create_distance_to_stage_grid(self.environment_grid)
-
+        self.stage_preference_grid = create_stage_preference_grid(environment_config)
         #fire logic
         self.fire_grid = np.full(
             (environment_config.width, environment_config.height),
@@ -88,6 +90,10 @@ class PanicSimModel(mesa.Model):
 
     def distance_to_exit(self, cell: Cell) -> int:
         x, y = cell.coordinate
+
+        if self.fire_active:
+            return int(self.safe_distance_to_exit_grid[x, y])
+
         return int(self.distance_to_exit_grid[x, y])
 
     def evacuate_agent(self,agent: PanicAgent) -> None:
@@ -165,6 +171,7 @@ class PanicSimModel(mesa.Model):
             self.fire_grid[x,y] = True
 
         self.fire_active = True
+        self.update_safe_distance_to_exit_grid()
 
     def kill_agent(self,agent: PanicAgent) -> None:
         self.dead_agents += 1
@@ -202,9 +209,21 @@ class PanicSimModel(mesa.Model):
             x, y = cell.coordinate
             self.fire_grid[x, y] = True
 
+        self.update_safe_distance_to_exit_grid()
+
     def is_near_fire(self,cell: Cell) -> bool:
         return any(self.is_fire_cell(neighbor) for neighbor in cell.neighborhood.cells)
 
     def distance_to_stage(self, cell: Cell) -> int:
         x, y = cell.coordinate
         return int(self.distance_to_stage_grid[x, y])
+
+    def stage_preference(self, cell: Cell) -> int:
+        x, y = cell.coordinate
+        return int(self.stage_preference_grid[x, y])
+
+    def update_safe_distance_to_exit_grid(self) -> None:
+        blocked_grid = self.environment_grid.copy()
+        blocked_grid[self.fire_grid] = CellType.OBSTACLE
+
+        self.safe_distance_to_exit_grid = create_distance_to_exit_grid(blocked_grid)

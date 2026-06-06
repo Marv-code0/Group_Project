@@ -1,5 +1,4 @@
 mesa
 numpy
 matplotlib
-pathfinding
 solara

@@ -236,3 +236,21 @@ def create_distance_to_stage_grid(environment_grid: np.ndarray) -> np.ndarray:
             queue.append((new_x, new_y))
 
     return distance_grid
+
+def create_stage_preference_grid(config: EnvironmentConfig) -> np.ndarray:
+    preference_grid = np.zeros(
+        (config.width, config.height),
+        dtype=np.int32
+    )
+
+    # general area in front of the stage
+    preference_grid[0:100, 57:72] = -3
+
+    # areas between the fences, should fill more evenly
+    preference_grid[8:44, 40:57] = -6
+    preference_grid[56:92, 40:57] = -6
+
+    # middle/catwalk area
+    preference_grid[44:56, 40:60] = -8
+
+    return preference_grid
