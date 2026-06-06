@@ -34,6 +34,10 @@ class EnvironmentConfig:
     max_agents_per_cell: int
 
     border_spawn_protection: int #how far from the borders an agent should spawn
+    fire_start_step: int
+    fire_start_size: int
+    fire_spread_interval: int
+    fire_spread_size: int
 
     # fixed
     width: int = 100
@@ -121,7 +125,7 @@ def add_front_stage(grid: np.ndarray, config: EnvironmentConfig) -> None:
     grid[48:52, 60:72] = CellType.STAGE
 
 """
-We choose to use OrthogonalMooreGrid so we have 8 neighboors. For every cell in the grid we calculate the distance
+We choose to use OrthogonalVonNeumannGrid so we have 4 neighboors. For every cell in the grid we calculate the distance
 to an exit
 """
 def create_distance_to_exit_grid(environment_grid: np.ndarray) -> np.ndarray:
@@ -141,16 +145,12 @@ def create_distance_to_exit_grid(environment_grid: np.ndarray) -> np.ndarray:
         distance_grid[x, y] = 0
         queue.append((x, y))
 
-    #all 8 neighbor directions
+    #all 4 neighbor directions
     neighbor_directions = [
         (1, 0),
         (-1, 0),
         (0, 1),
         (0, -1),
-        (1, 1),
-        (1, -1),
-        (-1, 1),
-        (-1, -1),
     ]
 
     while queue:

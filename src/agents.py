@@ -14,11 +14,20 @@ class PanicAgent(CellAgent):
         if self.cell is None:
             return
 
+        if self.model.fire_active and self.model.is_near_fire(self.cell):
+            self.increase_panic(self.model.fire_near_panic_increase)
+        if self.model.is_fire_cell(self.cell):
+            self.panic_level = 1.0
+
         next_cell = self.choose_next_cell()
 
         # Agent is blocked and cannot move.
         if next_cell is None:
             self.increase_panic(self.model.blocked_panic_increase)
+
+            if self.model.is_fire_cell(self.cell):
+                self.model.kill_agent(self)
+
             return
 
         # If the agent reaches an exit, he leaves
@@ -49,6 +58,9 @@ class PanicAgent(CellAgent):
         if make_random_move:
             return self.model.random.choice(reachable_cells)
 
+        if not self.model.fire_active:
+            return self.model.random.choice(reachable_cells)
+
         return self.choose_best_cell_to_exit(reachable_cells)
 
     def get_reachable_cells(self) -> list[Cell]:
@@ -59,10 +71,12 @@ class PanicAgent(CellAgent):
         reachable_cell_collection = current_cell.neighborhood.select(
             lambda cell:
             self.model.is_walkable_cell(cell)
+            and not self.model.is_fire_cell(cell)
             and (
                 self.model.is_exit_cell(cell)
                 or not cell.is_full
             )
+
         )
 
         return list(reachable_cell_collection.cells)
