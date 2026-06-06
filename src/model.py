@@ -8,7 +8,7 @@ from environment import CellType
 from agents import PanicAgent
 #OrthogonalVonNeumannGrid
 
-from environment import EnvironmentConfig, create_environment_grid, create_distance_to_exit_grid
+from environment import EnvironmentConfig, create_environment_grid, create_distance_to_exit_grid,create_distance_to_stage_grid
 
 class PanicSimModel(mesa.Model):
 
@@ -16,10 +16,10 @@ class PanicSimModel(mesa.Model):
         super().__init__(rng=environment_config.random_seed)
         #cons for panic increase and decrease
 
-        self.blocked_panic_increase = 0.1
-        self.panic_decay = 0.05
-        self.panic_from_other_cell_increase_value = 0.25
-        self.fire_near_panic_increase = 0.15
+        self.blocked_panic_increase = environment_config.blocked_panic_increase
+        self.panic_decay = environment_config.panic_decay
+        self.panic_from_other_cell_increase_value = environment_config.panic_from_other_cell_increase_value
+        self.fire_near_panic_increase = environment_config.fire_near_panic_increase
 
 
         self.num_agents = num_agents
@@ -42,6 +42,7 @@ class PanicSimModel(mesa.Model):
         self.environment_config = environment_config
         self.environment_grid = create_environment_grid(environment_config)
         self.distance_to_exit_grid = create_distance_to_exit_grid(self.environment_grid)
+        self.distance_to_stage_grid = create_distance_to_stage_grid(self.environment_grid)
 
         #fire logic
         self.fire_grid = np.full(
@@ -203,3 +204,7 @@ class PanicSimModel(mesa.Model):
 
     def is_near_fire(self,cell: Cell) -> bool:
         return any(self.is_fire_cell(neighbor) for neighbor in cell.neighborhood.cells)
+
+    def distance_to_stage(self, cell: Cell) -> int:
+        x, y = cell.coordinate
+        return int(self.distance_to_stage_grid[x, y])

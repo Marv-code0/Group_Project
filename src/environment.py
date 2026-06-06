@@ -39,6 +39,12 @@ class EnvironmentConfig:
     fire_spread_interval: int
     fire_spread_size: int
 
+    #panic values
+    blocked_panic_increase: float
+    panic_decay: float
+    panic_from_other_cell_increase_value : float
+    fire_near_panic_increase : float
+
     # fixed
     width: int = 100
     height: int = 80
@@ -52,10 +58,10 @@ def create_environment_grid(config: EnvironmentConfig) -> np.ndarray:
     )
 
     if config.use_stage:
-        add_front_stage(grid, config)
+        add_front_stage(grid)
 
     if config.use_barriers:
-        add_obstacles(grid, config)
+        add_obstacles(grid)
 
     add_exits(grid, config)
 
@@ -95,7 +101,7 @@ def add_exits(grid: np.ndarray, config: EnvironmentConfig) -> None:
         grid[x, 0] = CellType.EXIT
 
 
-def add_obstacles(grid: np.ndarray, config: EnvironmentConfig) -> None:
+def add_obstacles(grid: np.ndarray) -> None:
     """
     adding fences to the grid
     and 2 blocks
@@ -113,7 +119,7 @@ def add_obstacles(grid: np.ndarray, config: EnvironmentConfig) -> None:
 
     #lower right block
     grid[68:72, 12:28] = CellType.OBSTACLE
-def add_front_stage(grid: np.ndarray, config: EnvironmentConfig) -> None:
+def add_front_stage(grid: np.ndarray) -> None:
     """
     for the stage we use a fixed stage that is allways blocked
     Mainstage x 0-99 y 79-72
@@ -171,6 +177,62 @@ def create_distance_to_exit_grid(environment_grid: np.ndarray) -> np.ndarray:
             #if it is a reachable cell and is not visited, yet we add the value of the old cell +1
             distance_grid[new_x, new_y] = distance_grid[x, y] + 1
             #add the new x,y value to the queue to check the neighbors
+            queue.append((new_x, new_y))
+
+    return distance_grid
+
+def create_distance_to_stage_grid(environment_grid: np.ndarray) -> np.ndarray:
+    width, height = environment_grid.shape
+
+    distance_grid = np.full(
+        (width, height),
+        -1,
+        dtype=np.int32
+    )
+
+    queue = deque()
+
+    neighbor_directions = [
+        (1, 0),
+        (-1, 0),
+        (0, 1),
+        (0, -1),
+    ]
+
+    for x in range(width):
+        for y in range(height):
+            if environment_grid[x, y] != CellType.FREE:
+                continue
+
+            for dx, dy in neighbor_directions:
+                next_x = x + dx
+                next_y = y + dy
+
+                if not (0 <= next_x < width and 0 <= next_y < height):
+                    continue
+
+                if environment_grid[next_x, next_y] == CellType.STAGE:
+                    distance_grid[x, y] = 0
+                    queue.append((x, y))
+                    break
+
+    while queue:
+        x, y = queue.popleft()
+
+        for dx, dy in neighbor_directions:
+            new_x = x + dx
+            new_y = y + dy
+
+            if not (0 <= new_x < width and 0 <= new_y < height):
+                continue
+
+            if environment_grid[new_x, new_y] in (CellType.OBSTACLE, CellType.STAGE):
+                continue
+
+            if distance_grid[new_x, new_y] != -1:
+                continue
+
+            distance_grid[new_x, new_y] = distance_grid[x, y] + 1
             queue.append((new_x, new_y))
 
     return distance_grid

@@ -59,7 +59,7 @@ class PanicAgent(CellAgent):
             return self.model.random.choice(reachable_cells)
 
         if not self.model.fire_active:
-            return self.model.random.choice(reachable_cells)
+            return self.choose_best_cell_to_stage(reachable_cells)
 
         return self.choose_best_cell_to_exit(reachable_cells)
 
@@ -103,4 +103,12 @@ class PanicAgent(CellAgent):
 
         return self.model.random.choice(best_cells)
 
+    def choose_best_cell_to_stage(self, reachable_cells):
+        best_distance = min(self.model.distance_to_stage(cell) for cell in reachable_cells)
 
+        best_cells = [
+            cell for cell in reachable_cells
+            if self.model.distance_to_stage(cell) == best_distance
+        ]
+
+        return self.model.random.choice(best_cells)
