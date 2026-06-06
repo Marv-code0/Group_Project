@@ -110,9 +110,9 @@ env_config = EnvironmentConfig(
     use_barriers=True,
     max_agents_per_cell=4,
     border_spawn_protection=2,
-    random_seed=42,
+    random_seed=100,
 
-    fire_start_step=60,
+    fire_start_step=15,
     fire_start_size=5,
     fire_spread_interval=5,
     fire_spread_size=10,
@@ -126,7 +126,7 @@ env_config = EnvironmentConfig(
 
 model_params = {
     "environment_config": env_config,
-    "num_agents": 10000,
+    "num_agents": 4000,
 }
 
 
