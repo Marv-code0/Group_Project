@@ -17,12 +17,14 @@ pip install -r requirements.txt
 ## Run simulation
 
 ```bash
+source .venv/bin/activate
 python src/main.py
 ```
 
 ## Run visualization
 
 ```bash
+source .venv/bin/activate
 solara run src/visualization.py
 ```
 
