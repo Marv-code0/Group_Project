@@ -4,8 +4,8 @@
 # Due to the limited computing power we simulate with a few agents f.e. 4000 but count one agent as f.e. 10 persons.
 from environment import EnvironmentConfig
 from model import PanicSimModel
-import os
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 def print_simulation_summary(model: PanicSimModel,real_people,people_per_agent) -> None:
     model_data = model.datacollector.get_model_vars_dataframe()
@@ -98,11 +98,7 @@ def run_scenario_comparison(num_agents):
             f"{row['Max panic']:.4f}"
         )
 
-    root = Path(__file__).resolve().parents[1]
-    os.environ.setdefault("MPLBACKEND", "Agg")
-    os.environ.setdefault("MPLCONFIGDIR", str(root / ".mplconfig"))
-    os.environ.setdefault("XDG_CACHE_HOME", str(root / ".cache"))
-    import matplotlib.pyplot as plt
+    
 
     names = [row["Scenario"] for row in results]
     death_rates = [row["Death rate"] * 100 for row in results]
@@ -122,7 +118,7 @@ def run_scenario_comparison(num_agents):
     fig.suptitle("Scenario comparison, seed 42")
     fig.tight_layout()
 
-    output = root / "plots" / "scenario_comparison.png"
+    output = Path("plots") / "scenario_comparison.png"
     output.parent.mkdir(exist_ok=True)
     fig.savefig(output, dpi=200)
     print(f"\nSaved figure: {output}")
