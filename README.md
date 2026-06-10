@@ -7,9 +7,9 @@ Agents first move towards the stage. After a fire starts, they try to evacuate. 
 ## Setup
 
 Tested with Python 3.14.
-
+We recommend Python 3.12 or higher. 
 ```bash
-python3.14 -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
