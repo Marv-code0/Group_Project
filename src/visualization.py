@@ -105,16 +105,16 @@ def ArenaView(model):
 
 
 env_config = EnvironmentConfig(
-    exit_width=8,
+    exit_width=2,
     use_stage=True,
     use_barriers=True,
     max_agents_per_cell=4,
     border_spawn_protection=2,
-    random_seed=100,
+    random_seed=42,
 
-    fire_start_step=15,
+    fire_start_step=10,
     fire_start_size=5,
-    fire_spread_interval=5,
+    fire_spread_interval=2,
     fire_spread_size=10,
 
     blocked_panic_increase=0.1,
