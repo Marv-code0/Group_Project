@@ -1,7 +1,7 @@
 
 # Main to start simulation
 # We want to simulate a masspanic in an arena
-# Due to the limited computing power we simulate with a few agents f.e. 4000 but count one agent as f.e. 20 persons.
+# Due to the limited computing power we simulate with a few agents f.e. 4000 but count one agent as f.e. 10 persons.
 from environment import EnvironmentConfig
 from model import PanicSimModel
 import os
